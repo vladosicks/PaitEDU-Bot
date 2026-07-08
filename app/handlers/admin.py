@@ -118,7 +118,7 @@ async def open_order(callback: CallbackQuery):
         )
         return
 
-    await callback.message.edit_text(
+    text = (
         f"📄 <b>Замовлення #{order.id}</b>\n\n"
         f"👤 <b>Клієнт:</b> {order.full_name}\n"
         f"🆔 <b>ID:</b> <code>{order.user_id}</code>\n"
@@ -127,10 +127,21 @@ async def open_order(callback: CallbackQuery):
         f"📝 <b>Опис:</b>\n"
         f"{order.description or '—'}\n\n"
         f"📅 <b>Дата:</b> {order.created_at.strftime('%d.%m.%Y %H:%M')}\n"
-        f"📌 <b>Статус:</b> {order.status}",
-        parse_mode="HTML",
-        reply_markup=order_card_menu(order.id, order.status)
+        f"📌 <b>Статус:</b> {order.status}"
     )
+
+    try:
+        await callback.message.edit_text(
+            text,
+            parse_mode="HTML",
+            reply_markup=order_card_menu(order.id, order.status)
+        )
+    except Exception:
+        await callback.message.answer(
+            text,
+            parse_mode="HTML",
+            reply_markup=order_card_menu(order.id, order.status)
+        )
 
     await callback.answer()
 
