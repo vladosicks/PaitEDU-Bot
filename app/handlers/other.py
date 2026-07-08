@@ -1,7 +1,7 @@
 from aiogram import Router, F
 from aiogram.types import CallbackQuery
 
-from app.keyboards.essay_menu import essay_menu
+from app.keyboards.other_menu import other_menu
 
 router = Router()
 
@@ -23,5 +23,5 @@ async def other_callback(callback: CallbackQuery):
         "від 1 дня.",
 
         parse_mode="HTML",
-        reply_markup=essay_menu
+        reply_markup=other_menu
     )
