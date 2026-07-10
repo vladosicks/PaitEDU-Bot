@@ -2,8 +2,13 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.context import FSMContext
 
+from app.keyboards.client_reply_menu import client_reply_menu
 from app.states.order_state import OrderState
-from app.database.crud import get_order_by_id, add_message
+from app.database.crud import (
+    get_order_by_id,
+    add_message,
+    set_chat_active
+)
 
 router = Router()
 
@@ -14,6 +19,9 @@ async def reply_to_user(callback: CallbackQuery, state: FSMContext):
     order_id = int(callback.data.split("_")[1])
 
     await state.update_data(order_id=order_id)
+
+    set_chat_active(order_id, 1)
+
     await state.set_state(OrderState.waiting_admin_reply)
 
     await callback.message.answer(
@@ -41,7 +49,8 @@ async def send_reply(message: Message, state: FSMContext):
             f"💬 <b>Нове повідомлення щодо замовлення №{order.id}</b>\n\n"
             f"{message.text}"
         ),
-        parse_mode="HTML"
+        parse_mode="HTML",
+        reply_markup=client_reply_menu(order.id)
     )
 
     add_message(

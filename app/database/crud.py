@@ -246,3 +246,35 @@ def get_orders_by_user(user_id):
     db.close()
 
     return orders
+
+def set_chat_active(order_id, active):
+    db = SessionLocal()
+
+    order = (
+        db.query(Order)
+        .filter(Order.id == order_id)
+        .first()
+    )
+
+    if order:
+        order.chat_active = active
+        db.commit()
+
+    db.close()
+
+
+def get_active_order_by_user(user_id):
+    db = SessionLocal()
+
+    order = (
+        db.query(Order)
+        .filter(
+            Order.user_id == user_id,
+            Order.chat_active == 1
+        )
+        .first()
+    )
+
+    db.close()
+
+    return order

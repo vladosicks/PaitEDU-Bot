@@ -18,6 +18,7 @@ from app.database.crud import (
     get_done_orders,
     get_order_by_id,
     update_order_status,
+    get_messages,
 )
 
 router = Router()
@@ -111,6 +112,23 @@ async def open_order(callback: CallbackQuery):
 
     order = get_order_by_id(order_id)
 
+    messages = get_messages(order.id)
+
+    history = ""
+
+    for msg in messages:
+
+        if msg.sender == "admin":
+            sender = "👨‍💼 Менеджер"
+        else:
+            sender = "👤 Клієнт"
+
+        history += f"{sender}:\n{msg.text}\n\n"
+
+    if not history:
+        history = "Історія повідомлень поки порожня."
+
+
     if not order:
         await callback.answer(
             "Замовлення не знайдено.",
@@ -128,6 +146,10 @@ async def open_order(callback: CallbackQuery):
         f"{order.description or '—'}\n\n"
         f"📅 <b>Дата:</b> {order.created_at.strftime('%d.%m.%Y %H:%M')}\n"
         f"📌 <b>Статус:</b> {order.status}"
+        f"\n\n"
+        f"──────────────\n"
+        f"<b>💬 Історія листування</b>\n\n"
+        f"{history}"
     )
 
     try:

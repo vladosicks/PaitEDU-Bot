@@ -19,6 +19,8 @@ class Order(Base):
 
     status = Column(String, default="new")
 
+    chat_active = Column(Integer, default=0)
+
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
