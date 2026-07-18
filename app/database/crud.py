@@ -1,6 +1,12 @@
 from app.database.database import SessionLocal
 from app.database.models import Order, Message
 
+from app.utils.constants import (
+    STATUS_NEW,
+    STATUS_WORK,
+    STATUS_DONE,
+    STATUS_ARCHIVE
+)
 
 def add_order(
     user_id,
@@ -47,7 +53,7 @@ def get_new_orders():
 
     orders = (
         db.query(Order)
-        .filter(Order.status == "new")
+        .filter(Order.status == STATUS_NEW)
         .order_by(Order.created_at.desc())
         .all()
     )
@@ -62,7 +68,7 @@ def get_work_orders():
 
     orders = (
         db.query(Order)
-        .filter(Order.status == "work")
+        .filter(Order.status == STATUS_WORK)
         .order_by(Order.created_at.desc())
         .all()
     )
@@ -77,7 +83,7 @@ def get_done_orders():
 
     orders = (
         db.query(Order)
-        .filter(Order.status == "done")
+        .filter(Order.status == STATUS_DONE)
         .order_by(Order.created_at.desc())
         .all()
     )
@@ -278,3 +284,192 @@ def get_active_order_by_user(user_id):
     db.close()
 
     return order
+
+def get_archive_orders():
+    db = SessionLocal()
+
+    orders = (
+        db.query(Order)
+        .filter(Order.status == STATUS_ARCHIVE)
+        .order_by(Order.created_at.desc())
+        .all()
+    )
+
+    db.close()
+
+    return orders
+
+def search_orders(query):
+    db = SessionLocal()
+
+    search = query.strip().replace("#", "").replace("@", "")
+
+    orders = []
+
+    # Пошук по імені та username
+    found = (
+        db.query(Order)
+        .filter(
+            (Order.full_name.ilike(f"%{search}%")) |
+            (Order.username.ilike(f"%{search}%"))
+        )
+        .all()
+    )
+
+    orders.extend(found)
+
+    # Якщо введено число
+    if search.isdigit():
+
+        # Пошук по номеру замовлення
+        order = (
+            db.query(Order)
+            .filter(Order.id == int(search))
+            .first()
+        )
+
+        if order and order not in orders:
+            orders.append(order)
+
+        # Пошук по Telegram ID
+        user_orders = (
+            db.query(Order)
+            .filter(Order.user_id == int(search))
+            .all()
+        )
+
+        for order in user_orders:
+            if order not in orders:
+                orders.append(order)
+
+    db.close()
+
+    return orders
+
+def get_orders_count_by_status(status):
+    db = SessionLocal()
+
+    count = (
+        db.query(Order)
+        .filter(Order.status == status)
+        .count()
+    )
+
+    db.close()
+
+    return count
+
+def update_order_price(order_id: int, price: int):
+
+    db = SessionLocal()
+
+    order = db.query(Order).filter(
+        Order.id == order_id
+    ).first()
+
+    if order:
+
+        order.price = price
+
+        db.commit()
+
+    db.close()
+
+def update_pending_price(order_id: int, price: int):
+
+    with SessionLocal() as session:
+
+        order = session.get(Order, order_id)
+
+        if not order:
+            return
+
+        order.pending_price = price
+
+        session.commit()
+
+
+def clear_pending_price(order_id: int):
+
+    with SessionLocal() as session:
+
+        order = session.get(Order, order_id)
+
+        if not order:
+            return
+
+        order.pending_price = None
+
+        session.commit()
+
+def update_price_status(order_id: int, status: str):
+
+    db = SessionLocal()
+
+    order = (
+        db.query(Order)
+        .filter(Order.id == order_id)
+        .first()
+    )
+
+    if order:
+        order.price_status = status
+        db.commit()
+
+    db.close()
+
+def update_order_document(
+    order_id: int,
+    file_id: str,
+    file_name: str
+):
+    db = SessionLocal()
+
+    order = (
+        db.query(Order)
+        .filter(Order.id == order_id)
+        .first()
+    )
+
+    if order:
+        order.document_file_id = file_id
+        order.document_name = file_name
+        db.commit()
+
+    db.close()
+
+def update_payment_status(
+    order_id: int,
+    payment_status: str
+):
+    db = SessionLocal()
+
+    order = (
+        db.query(Order)
+        .filter(Order.id == order_id)
+        .first()
+    )
+
+    if order:
+        order.payment_status = payment_status
+        db.commit()
+
+    db.close()
+
+def update_payment_status(
+    order_id: int,
+    status: str
+):
+    db = SessionLocal()
+
+    order = (
+        db.query(Order)
+        .filter(Order.id == order_id)
+        .first()
+    )
+
+    if order:
+        order.payment_status = status
+        db.commit()
+
+    db.close()

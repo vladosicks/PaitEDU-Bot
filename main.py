@@ -24,6 +24,9 @@ from app.handlers.order import router as order_router
 from app.handlers.admin import router as admin_router
 from app.handlers.admin_chat import router as admin_chat_router
 from app.handlers.client_chat import router as client_chat_router
+from app.handlers.my_orders import router as my_orders_router
+from app.handlers.price_confirm import router as price_confirm_router
+from app.handlers.profile import router as profile_router
 
 
 bot = Bot(token=BOT_TOKEN)
@@ -42,9 +45,12 @@ dp.include_router(translation_router)
 dp.include_router(translation_price_router)
 dp.include_router(other_router)
 dp.include_router(order_router)
+dp.include_router(my_orders_router)
 dp.include_router(admin_router)
 dp.include_router(admin_chat_router)
 dp.include_router(client_chat_router)
+dp.include_router(price_confirm_router)
+dp.include_router(profile_router)
 
 async def main():
     await dp.start_polling(bot)

@@ -4,6 +4,7 @@ from aiogram.types import Message
 from aiogram import F
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
+from app.keyboards.message_card_menu import message_card_menu
 
 from app.states.order_state import OrderState
 
@@ -13,6 +14,7 @@ from app.database.crud import (
     add_message
 )
 from app.config.settings import ADMIN_ID
+
 
 router = Router()
 
@@ -67,3 +69,38 @@ async def send_client_reply(message: Message, state: FSMContext):
     )
 
     await state.clear()
+
+@router.callback_query(F.data.startswith("contact_manager_"))
+async def contact_manager(callback: CallbackQuery):
+
+    order_id = int(callback.data.split("_")[2])
+
+    order = get_order_by_id(order_id)
+
+    username = (
+        f"@{order.username}"
+        if order.username
+        else "немає"
+    )
+    await callback.bot.send_message(
+        chat_id=ADMIN_ID,
+        text=(
+            "🔔 <b>Клієнт готовий до оплати</b>\n\n"
+            f"📄 Замовлення №<b>{order.id}</b>\n"
+            f"💰 Сума: <b>{order.price} грн</b>\n\n"
+            f"👤 {order.full_name}\n"
+            f"📱 {username}\n"
+            f"🆔 <code>{order.user_id}</code>"
+        ),
+        parse_mode="HTML",
+        reply_markup=message_card_menu(order.id)
+     )
+     
+    await callback.answer(
+        "✅ Менеджера повідомлено."
+    )
+
+    await callback.message.answer(
+        "✅ Запит успішно відправлено.\n\n"
+        "Менеджер зв'яжеться з вами найближчим часом."
+    )

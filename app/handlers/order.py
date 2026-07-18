@@ -6,6 +6,7 @@ from app.states.order_state import OrderState
 
 from app.keyboards.order_menu import order_menu
 from app.keyboards.main_menu import main_menu
+from app.ui.cards import success_card
 
 from app.database.crud import add_order
 
@@ -83,8 +84,15 @@ async def receive_order(message: Message, state: FSMContext):
     )
 
     await message.answer(
-        "✅ Ваше замовлення отримано!\n\n"
-        "Найближчим часом ми зв'яжемося з вами."
+        success_card(
+            "Замовлення отримано",
+            (
+                "Ми вже отримали вашу заявку.\n\n"
+                "👨‍💼 Менеджер перевірить її найближчим часом "
+                "та зв'яжеться з вами."
+            )
+        ),
+        parse_mode="HTML"
     )
 
     await state.clear()
